@@ -1,68 +1,85 @@
 # LZR Skills
 
-**Um conjunto de instruções para sua IA criar apps e sites com design único e código de nível profissional.**
+<p align="center">
+  <em>Product-first AI skills. Unique design. Professional code. Zero generic output.</em>
+</p>
 
-A maioria dos apps gerados com IA saem iguais: mesmas fontes, mesmas cores, mesmo padrão visual genérico — e o código que os sustenta cheia de atalhos que geram problemas no futuro.
-
-Este repositório resolve isso. Instale uma vez, use em todos os seus projetos.
-
----
-
-## O que você ganha ao instalar
-
-**Antes:** você pede para sua IA criar uma tela e ela entrega o padrão genérico de sempre.
-
-**Depois:** antes de criar qualquer coisa, a IA faz cinco perguntas sobre o produto — quem usa, o que resolve, que sensação deve provocar. A partir dessas respostas, deriva uma identidade visual única. Nenhum projeto sai igual ao outro.
-
-Além do design:
-- O código segue padrões reconhecidos por qualquer desenvolvedor sênior do mercado
-- Todo projeto nasce com estrutura de pastas, versionamento e fluxo de trabalho prontos
-- Acessibilidade, responsividade e estados de interface (carregando, vazio, erro) são obrigatórios — não opcionais
+<p align="center">
+  <a href="https://github.com/Lizardsstudios/lzr-skills/stargazers"><img src="https://img.shields.io/github/stars/Lizardsstudios/lzr-skills?style=for-the-badge&logo=github&labelColor=1e293b&color=fbbf24" alt="GitHub stars"/></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-fbbf24?style=for-the-badge&labelColor=1e293b" alt="MIT License"/></a>
+  <a href="#installation"><img src="https://img.shields.io/badge/Works_with-Claude_·_Cursor_·_Windsurf_·_Codex-111827?style=for-the-badge&labelColor=1e293b" alt="Compatible AI tools"/></a>
+</p>
 
 ---
 
-## Compatibilidade
+Most AI-generated apps look the same: Inter font, purple gradient on white, generic SaaS blue buttons. The code underneath follows the same shortcuts that create technical debt.
 
-| Ferramenta de IA | Compatível | Como instalar |
+**LZR Skills fixes this at the root.**
+
+Before writing a single line of code, the AI asks five questions about the product — who uses it, what it solves, what feeling it should create. Visual identity is derived from those answers, not from a style catalog. The result is an app that looks like it was designed for that product specifically.
+
+---
+
+## What you get
+
+- **Unique visual identity** — derived from the product brief, never from trends or references to other brands
+- **Professional code** — patterns recognized as correct by any senior engineer
+- **Complete project setup** — folder structure, version control, review workflow, automated board — in one command
+- **Mandatory states** — every component ships with loading, empty, error, and success states
+- **Accessibility built in** — contrast, keyboard navigation, screen readers, touch targets — not optional
+
+---
+
+## Compatibility
+
+| AI Tool | Support | Install method |
 |---|---|---|
-| **Claude Code** | ✅ Nativo | Ver instruções abaixo |
-| **Cursor** | ✅ Manual | Copiar conteúdo como regras de projeto |
-| **Windsurf** | ✅ Manual | Copiar conteúdo como regras de projeto |
-| **Codex** | ✅ Manual | Copiar conteúdo como contexto de sistema |
-| **Gemini CLI** | ✅ Manual | Copiar conteúdo como contexto de sistema |
-| **Antigravity** | ✅ Nativo | Ver instruções abaixo |
+| **Claude Code** | ✅ Native | `npx skills add` — see below |
+| **Cursor** | ✅ Manual | Copy skill content to `.cursor/rules/` |
+| **Windsurf** | ✅ Manual | Copy skill content to `.windsurf/rules/` |
+| **Codex** | ✅ Manual | Paste skill content as system context |
+| **Gemini CLI** | ✅ Manual | Paste skill content as system context |
+| **Antigravity** | ✅ Native | `/skills add` — see below |
 
 ---
 
-## Instalação
+## Installation
 
-### Claude Code (instalação automática)
+### Install all skills at once (recommended)
 
-**Disponível em todos os seus projetos — recomendado:**
+**Global — available in every project on your machine:**
 ```bash
 npx skills add https://github.com/Lizardsstudios/lzr-skills
 ```
 
-**Só no projeto atual:**
-Copie a pasta `skills/` para dentro de `.claude/skills/` no seu projeto.
+**Project only — available in the current project folder:**
+```bash
+npx skills add https://github.com/Lizardsstudios/lzr-skills --project
+```
 
-**Verificar se foi instalado:**
-Abra o Claude Code e digite `/origin-design` — se responder, está pronto.
+### Install a single skill
 
----
+**Global:**
+```bash
+npx skills add https://github.com/Lizardsstudios/lzr-skills --skill "origin-design"
+npx skills add https://github.com/Lizardsstudios/lzr-skills --skill "lzr-code-standards"
+npx skills add https://github.com/Lizardsstudios/lzr-skills --skill "new-project"
+```
 
-### Cursor, Windsurf e outros editores com IA
+**Project only:**
+```bash
+npx skills add https://github.com/Lizardsstudios/lzr-skills --skill "origin-design" --project
+```
 
-Essas ferramentas não usam o formato de skill diretamente, mas o conteúdo funciona como regras de projeto.
+### Manual installation (Cursor, Windsurf, Codex, Gemini)
 
-1. Abra a pasta `skills/origin-design/`
-2. Copie o conteúdo do arquivo principal para as regras do seu editor:
-   - **Cursor:** cole em `.cursor/rules/design.mdc`
-   - **Windsurf:** cole em `.windsurf/rules/design.md`
-   - **Outros:** consulte a documentação da sua ferramenta para "project rules" ou "system context"
-3. Repita para `skills/lzr-code-standards/`
-
----
+1. Open the skill folder you want (e.g. `skills/origin-design/`)
+2. Copy the content of `SKILL.md`
+3. Paste into your tool's rules file:
+   - **Cursor:** `.cursor/rules/design.mdc`
+   - **Windsurf:** `.windsurf/rules/design.md`
+   - **Codex / Gemini:** system prompt or context file
+4. Repeat for `skills/lzr-code-standards/`
 
 ### Antigravity
 
@@ -72,79 +89,72 @@ Essas ferramentas não usam o formato de skill diretamente, mas o conteúdo func
 
 ---
 
-## O que está incluído
+## Skills
 
-### `skills/origin-design` — Design de produto único
+| Skill | Install name | What it does |
+|---|---|---|
+| [origin-design](./skills/origin-design/) | `origin-design` | Derives visual identity from the product brief. Covers colors, typography, spacing, 8 required components, UX patterns, motion, accessibility and responsiveness. |
+| [lzr-code-standards](./skills/lzr-code-standards/) | `lzr-code-standards` | Professional coding patterns for web apps. Data fetching, layered architecture, visual tokens in code, navigation, security. |
+| [new-project](./skills/new-project/) | `new-project` | Creates a complete new project — folder structure, repository, branches, review workflow — preceded by a product brief wizard that feeds the design skill. |
 
-Ativa quando você pede para criar uma tela, componente ou interface.
+### Which one do I need?
 
-**O que faz:**
-- Faz 5 perguntas sobre o produto antes de qualquer decisão visual
-- Deriva paleta de cores, tipografia e ritmo visual da essência do produto
-- Nunca usa fontes ou cores do "padrão genérico de IA"
-- Garante que todos os componentes tenham estados definidos: carregando, vazio, erro, sucesso
-- Cobre animações, acessibilidade e responsividade com regras específicas
-
-**Para:** apps web, painéis de gestão, ferramentas, plataformas
-**Não é para:** landing pages e portfólios
-
----
-
-### `skills/lzr-code-standards` — Código de nível profissional
-
-Ativa automaticamente em qualquer projeto web.
-
-**O que garante:**
-- Busca de dados do servidor sempre com cache — sem recarregamentos desnecessários
-- Estrutura de código separada em camadas — interface, lógica, acesso ao banco
-- Tokens visuais no código — nunca cores ou tamanhos fixos
-- Navegação que sempre leva o usuário de volta para onde ele estava
-- Componentes com todos os estados definidos — nunca HTML solto
+- **Building a screen or component?** → `origin-design`
+- **Working on a web app codebase?** → `lzr-code-standards`
+- **Starting a brand new project?** → `new-project` (includes both above)
+- **Want everything?** → install all three
 
 ---
 
-### `skills/new-project` — Criar projeto novo com um comando
+## How to use
 
-Ativa quando você digita `/new-project` ou "novo projeto".
+### Starting a new project
 
-**O que faz:**
-1. Pergunta o que estamos criando (app, site, serviço)
-2. Faz as 5 perguntas do produto para gerar a identidade visual
-3. Cria toda a estrutura de pastas no padrão profissional
-4. Configura repositório, ramos de desenvolvimento e fluxo de revisão
-5. Entrega o briefing para a skill de design criar a identidade visual do projeto
-
-**Como usar:**
 ```
-/new-project nome-do-projeto web
-/new-project nome-do-projeto api
+/new-project my-app web
 ```
 
----
+The skill will:
+1. Ask what you're building (app, site, or service)
+2. Ask 5 questions about the product
+3. Create the full project structure
+4. Propose a unique visual identity based on your answers
 
-## Primeiros passos após instalar
+### Building a screen in an existing project
 
-1. Abra sua ferramenta de IA em qualquer projeto
-2. Digite: `novo projeto` ou `/new-project meu-app web`
-3. Responda as perguntas sobre o produto
-4. Receba a estrutura completa e a proposta de identidade visual
+Just ask:
+```
+"Create the invoice list screen"
+"Build the user settings panel"
+"Design the empty state for the dashboard"
+```
 
-Ou, se o projeto já existe:
-1. Peça para criar uma tela: `"crie a tela de listagem de faturas"`
-2. A skill de design vai perguntar sobre o produto antes de criar qualquer coisa
+With `origin-design` active, the AI will ask about the product before making any visual decision.
 
----
+### On an existing codebase
 
-## Por que este repositório existe
-
-As skills de design disponíveis no mercado partem de estilos e catálogos. O resultado é sempre um produto que se parece com outro produto.
-
-Este repositório parte do oposto: antes de qualquer decisão visual, entende o produto. A identidade visual que emerge é derivada — não escolhida de uma lista.
-
-O objetivo é que qualquer produto construído com estas instruções possa um dia se tornar a referência, não a cópia.
+If you already have a project, `lzr-code-standards` will enforce professional patterns as you build — data fetching, component states, visual tokens, navigation.
 
 ---
 
-## Licença
+## Why this exists
 
-MIT — use, modifique e distribua livremente.
+Design skills available today start from style catalogs. The output looks like the catalog.
+
+This approach starts from the opposite direction: understand the product first, derive the visual identity from its purpose, users, and promise. The result is an app that could only be itself — not a reference to something else.
+
+The goal is that products built with these skills can one day become references, not copies.
+
+---
+
+## Contributing
+
+Found something that should work differently? Have a pattern that should be here?
+
+Open an issue or submit a pull request. Improvements with clear reasoning are welcome.
+
+---
+
+## License
+
+MIT — use, modify, and distribute freely.

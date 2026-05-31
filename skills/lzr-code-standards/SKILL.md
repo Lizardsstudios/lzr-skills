@@ -1,254 +1,239 @@
 ---
 name: lzr-code-standards
-description: Padrões de codificação LZR para apps web e serviços. Carrega automaticamente quando trabalhando em qualquer projeto LZR. Define como buscar dados, como organizar a camada de acesso ao banco, como estruturar componentes e como aplicar o sistema visual em código.
+description: Professional coding standards for web apps and services. Activates automatically when working in any web project. Defines how to fetch data, how to structure the data access layer, how to build components, and how to apply the visual system in code.
 ---
 
 # LZR Code Standards
 
-Estes padrões valem para todo projeto LZR com interface web. São regras de como o código deve ser escrito — não opiniões, não preferências. Cada regra existe porque o contrário causou problemas reais.
+These standards apply to every LZR web project with a user interface. They are not preferences — each rule exists because the opposite caused real problems.
 
 ---
 
-## Regra 1 — Busca de Dados
+## Rule 1 — Data Fetching
 
-**Todo dado que vem do servidor usa React Query. Sem exceções.**
+**Every server-side data request uses React Query. No exceptions.**
 
-Usar `useState` + `useEffect` para carregar dados do servidor está proibido. Esse padrão causa: recarregamento a cada troca de tela, múltiplas requisições para o mesmo dado, sem cache, sem estado de carregamento unificado.
+Using `useState` + `useEffect` to load server data is prohibited. This pattern causes: full reload on every screen change, duplicate requests for the same data, no cache, no unified loading state.
 
-**Correto:**
+**Correct:**
 ```tsx
 const { data, isLoading, error } = useQuery({
-  queryKey: queryKeys.faturas.list(),
-  queryFn: () => faturaService.getAll(),
+  queryKey: queryKeys.invoices.list(),
+  queryFn: () => invoiceService.getAll(),
   ...queryConfig.lists,
 })
 ```
 
-**Proibido:**
+**Prohibited:**
 ```tsx
-const [faturas, setFaturas] = useState([])
-useEffect(() => { faturaService.getAll().then(setFaturas) }, [])
+const [invoices, setInvoices] = useState([])
+useEffect(() => { invoiceService.getAll().then(setInvoices) }, [])
 ```
 
-**`useState` é permitido apenas para:**
-- Estado de interface: modal aberto, aba ativa, filtro local
-- Rascunho de formulário antes de salvar
-- Estado efêmero: hover, foco, animação
+**`useState` is allowed only for:**
+- UI state: modal open, active tab, local filter
+- Form draft before saving
+- Ephemeral state: hover, focus, animation
 
-**Toda mutation usa atualização otimista:**
+**Every mutation uses optimistic updates:**
 ```tsx
 const mutation = useMutation({
-  mutationFn: (dados) => faturaService.criar(dados),
-  onMutate: async (novosDados) => {
-    await queryClient.cancelQueries({ queryKey: queryKeys.faturas.list() })
-    const anterior = queryClient.getQueryData(queryKeys.faturas.list())
-    queryClient.setQueryData(queryKeys.faturas.list(), (antigo) => [...antigo, novosDados])
-    return { anterior }
+  mutationFn: (data) => invoiceService.create(data),
+  onMutate: async (newData) => {
+    await queryClient.cancelQueries({ queryKey: queryKeys.invoices.list() })
+    const previous = queryClient.getQueryData(queryKeys.invoices.list())
+    queryClient.setQueryData(queryKeys.invoices.list(), (old) => [...old, newData])
+    return { previous }
   },
   onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: queryKeys.faturas.list() })
+    queryClient.invalidateQueries({ queryKey: queryKeys.invoices.list() })
   },
   onError: (_err, _vars, context) => {
-    queryClient.setQueryData(queryKeys.faturas.list(), context.anterior)
+    queryClient.setQueryData(queryKeys.invoices.list(), context.previous)
   },
 })
 ```
 
-**Por quê otimista:** a maioria das ações bem-sucedidas. O usuário vê o resultado imediatamente. Se der erro, o estado reverte. Resultado: interface 300–500ms mais rápida sem nenhuma mudança no servidor.
+Why optimistic: most actions succeed. The user sees the result immediately. If it fails, the state reverts. Result: interface feels 300–500ms faster with no server changes.
 
-**Arquivo obrigatório `src/lib/query-keys.ts`:**
+**Required file `src/lib/query-keys.ts`:**
 ```tsx
 export const queryKeys = {
-  faturas: {
-    all: ['faturas'] as const,
-    list: () => ['faturas', 'list'],
-    detail: (id: string) => ['faturas', id],
+  invoices: {
+    all: ['invoices'] as const,
+    list: () => ['invoices', 'list'],
+    detail: (id: string) => ['invoices', id],
   },
 }
 ```
 
-**Tempos de cache por tipo de dado:**
+**Cache times by data type:**
 
-| Tipo | Tempo até revalidar | Tempo até limpar |
+| Type | Stale after | Removed after |
 |---|---|---|
-| Dados estáticos (nome da empresa, configurações) | 10 minutos | 30 minutos |
-| Listas (faturas, contratos, usuários) | 2 minutos | 10 minutos |
-| Detalhes (uma fatura específica) | 1 minuto | 5 minutos |
-| Atividade em tempo real | 30 segundos | 5 minutos |
+| Static (company settings, config) | 10 min | 30 min |
+| Lists (invoices, contracts, users) | 2 min | 10 min |
+| Detail (one specific record) | 1 min | 5 min |
+| Real-time activity | 30 sec | 5 min |
 
 ---
 
-## Regra 2 — Separação de Camadas (Backend)
+## Rule 2 — Layered Architecture (Backend)
 
-**A regra de negócio nunca acessa o banco diretamente. Sempre passa por uma interface intermediária.**
+**Business logic never accesses the database directly. It always goes through an interface layer.**
 
-Sem essa separação: trocar de banco de dados exige reescrever todo o código que toca dados. Com ela: só o adaptador muda.
+Without this separation: changing the database requires rewriting all code that touches data. With it: only the adapter changes.
 
-**Três camadas obrigatórias:**
+**Three required layers:**
 
-**Camada 1 — Interface (o contrato):**
-Define o que pode ser feito com um dado. Sem nenhuma dependência de ferramenta específica.
+**Layer 1 — Interface (the contract):**
+Defines what can be done with data. Zero dependency on any specific tool.
 ```ts
-// packages/types/src/repositories/fatura.ts
-export interface FaturaRepository {
-  getAll(params?: PaginacaoParams): Promise<ResultadoPaginado<Fatura>>
-  getById(id: string): Promise<Fatura | null>
-  criar(fatura: FaturaInsert): Promise<Fatura>
-  atualizar(id: string, atualizacoes: FaturaUpdate): Promise<Fatura>
-  deletar(id: string): Promise<void>
-  getEmpresaDonoId(id: string): Promise<string | null>
+export interface InvoiceRepository {
+  getAll(params?: PaginationParams): Promise<PaginatedResult<Invoice>>
+  getById(id: string): Promise<Invoice | null>
+  create(invoice: InvoiceInsert): Promise<Invoice>
+  update(id: string, updates: InvoiceUpdate): Promise<Invoice>
+  delete(id: string): Promise<void>
+  getOwnerCompanyId(id: string): Promise<string | null>
 }
 ```
 
-**Camada 2 — Adaptador (a implementação):**
-Faz o acesso real ao banco. Recebe o cliente por parâmetro — nunca instancia por conta própria.
+**Layer 2 — Adapter (the implementation):**
+Performs the actual database access. Receives the client as a parameter — never instantiates on its own.
 ```ts
-// packages/supabase/src/repositories/faturaRepository.ts
-export function criarSupabaseFaturaRepository(client: SupabaseClient): FaturaRepository {
+export function createInvoiceRepository(client: DatabaseClient): InvoiceRepository {
   return {
     async getById(id) {
-      const { data, error } = await client.from('faturas').select('*').eq('id', id).single()
+      const { data, error } = await client.from('invoices').select('*').eq('id', id).single()
       if (error) throw error
       return data
     },
-    // demais métodos...
   }
 }
 ```
 
-**Camada 3 — Ponto de montagem (onde tudo se conecta):**
-Único lugar do código que sabe qual banco está sendo usado.
+**Layer 3 — Composition root (where everything connects):**
+The only place in the codebase that knows which database is being used.
 ```ts
-// apps/web/src/lib/repositories.ts
-import { criarSupabaseRepositories } from '@lzr/supabase/repositories'
-import { createClient } from '@/lib/supabase'
-
 export function getRepositories() {
-  return criarSupabaseRepositories(createClient())
+  return createRepositories(createDatabaseClient())
 }
 ```
 
-**Autorização vive na camada de serviço, nunca no adaptador:**
+**Authorization lives in the service layer, never in the adapter:**
 ```ts
-async function autorizarAcessoFatura(id: string) {
-  const ctx = await getContextoAuth()
-  verificarAutenticado(ctx)
-  const empresaDonoId = await getRepositories().faturas.getEmpresaDonoId(id)
-  if (!empresaDonoId) throw new ErroAutorizacao('NOT_FOUND', 'Fatura não encontrada.')
-  verificarMesmaEmpresa(ctx.empresaId, empresaDonoId)
+async function authorizeInvoiceAccess(id: string) {
+  const ctx = await getCurrentAuthContext()
+  requireAuthenticated(ctx)
+  const ownerCompanyId = await getRepositories().invoices.getOwnerCompanyId(id)
+  if (!ownerCompanyId) throw new AuthorizationError('NOT_FOUND', 'Invoice not found.')
+  requireCompanyMatch(ctx.companyId, ownerCompanyId)
 }
 ```
 
-**Quando aplicar:** todo SaaS multi-empresa com mais de 2 semanas de vida.
-**Quando não aplicar:** scripts pontuais, protótipos em validação.
+Apply when: multi-tenant SaaS with more than 2 weeks of life.
+Skip when: one-off scripts, prototypes still in validation.
 
 ---
 
-## Regra 3 — Tokens Visuais em Código
+## Rule 3 — Visual Tokens in Code
 
-**Nunca usar cor ou tamanho fixo no código. Sempre usar os tokens do sistema.**
+**Never use hardcoded colors or sizes. Always use system tokens.**
 
-**Proibido:**
+**Prohibited:**
 ```tsx
 <div className="bg-[#3b82f6] text-white p-[13px]">
 ```
 
-**Correto:**
+**Correct:**
 ```tsx
 <div className="bg-action text-inverse p-s4">
 ```
 
-**Configuração obrigatória em `tailwind.config.ts`:**
+**Required `tailwind.config.ts` mapping:**
 ```ts
 theme: {
   extend: {
     colors: {
-      bg:               'var(--bg)',
-      surface:          'var(--surface)',
+      bg: 'var(--bg)',
+      surface: 'var(--surface)',
       'surface-raised': 'var(--surface-raised)',
-      border:           'var(--border)',
-      'border-strong':  'var(--border-strong)',
-      'text-primary':   'var(--text-primary)',
+      border: 'var(--border)',
+      'border-strong': 'var(--border-strong)',
+      'text-primary': 'var(--text-primary)',
       'text-secondary': 'var(--text-secondary)',
-      'text-disabled':  'var(--text-disabled)',
-      'text-inverse':   'var(--text-inverse)',
-      accent:           'var(--accent)',
-      'accent-hover':   'var(--accent-hover)',
-      action:           'var(--action)',
-      'action-hover':   'var(--action-hover)',
-      danger:           'var(--danger)',
-      success:          'var(--success)',
+      'text-disabled': 'var(--text-disabled)',
+      'text-inverse': 'var(--text-inverse)',
+      accent: 'var(--accent)',
+      'accent-hover': 'var(--accent-hover)',
+      action: 'var(--action)',
+      'action-hover': 'var(--action-hover)',
+      danger: 'var(--danger)',
+      success: 'var(--success)',
     },
     spacing: {
-      s1: '4px',
-      s2: '8px',
-      s3: '12px',
-      s4: '16px',
-      s5: '24px',
-      s6: '32px',
-      s7: '48px',
-      s8: '64px',
-      s9: '96px',
+      s1: '4px', s2: '8px', s3: '12px', s4: '16px', s5: '24px',
+      s6: '32px', s7: '48px', s8: '64px', s9: '96px',
     },
   }
 }
 ```
 
-**Placeholder obrigatoriamente usa `text-placeholder`:**
+**Placeholder uses `--text-placeholder` — never `--text-secondary`:**
 ```tsx
-// Proibido — contraste insuficiente (~3:1)
+// Prohibited — contrast failure (~3:1)
 <input className="placeholder:text-text-secondary" />
 
-// Correto — garante 4.5:1 exigido pela acessibilidade
+// Correct — guarantees 4.5:1 required for accessibility
 <input className="placeholder:text-text-placeholder" />
 ```
 
 ---
 
-## Regra 4 — Navegação
+## Rule 4 — Navigation
 
-**Botão de voltar usa sempre o histórico. Nunca uma rota fixa.**
+**Back navigation always uses history. Never a hardcoded route.**
 
 ```tsx
-// Proibido — leva o usuário para um lugar que talvez não seja de onde ele veio
-<button onClick={() => router.push('/dashboard')}>Voltar</button>
+// Prohibited — sends user to a place they may not have come from
+<button onClick={() => router.push('/dashboard')}>Back</button>
 
-// Correto — leva de volta para onde o usuário estava
-<button onClick={() => router.back()}>Voltar</button>
+// Correct — returns to wherever the user was
+<button onClick={() => router.back()}>Back</button>
 ```
 
-**Por quê:** o usuário pode ter chegado de qualquer tela — busca, notificação, link direto. Uma rota fixa quebra o fluxo de navegação dele.
+Why: the user may have arrived from search, a notification, or a direct link. A hardcoded route breaks their navigation flow.
 
-`router.push()` é para navegação intencional para frente. `router.back()` é exclusivamente para retroceder.
+`router.push()` is for intentional forward navigation. `router.back()` is exclusively for going back.
 
 ---
 
-## Regra 5 — Componentes HTML Soltos Proibidos
+## Rule 5 — No Loose HTML Elements
 
-**O código de aplicação nunca usa elemento HTML solto para UI. Sempre usa o componente do sistema.**
+**Application code never uses bare HTML elements for UI. Always uses system components.**
 
 ```tsx
-// Proibido
-<button onClick={salvar}>Salvar</button>
+// Prohibited
+<button onClick={save}>Save</button>
 <input type="text" />
 <select>...</select>
 
-// Correto
-<Button onClick={salvar}>Salvar</Button>
+// Correct
+<Button onClick={save}>Save</Button>
 <Input />
 <Select>...</Select>
 ```
 
-**Por quê:** elementos soltos ignoram os estados de foco, loading, disabled e acessibilidade que os componentes do sistema implementam. Cada elemento solto é um componente que não tem todos os estados e falha na acessibilidade.
+Why: bare elements bypass the focus, loading, disabled, and accessibility states that system components implement. Every loose element is a component that will fail in the edge cases.
 
 ---
 
-## Regra 6 — Super Admin (SaaS multi-empresa)
+## Rule 6 — Super Admin (Multi-tenant SaaS)
 
-Em todo SaaS com múltiplas empresas, super admin é um papel explícito — nunca um usuário sem empresa.
+In every SaaS with multiple companies, super admin is an explicit role — never a user without a company.
 
 ```sql
--- Função de verificação obrigatória
 CREATE OR REPLACE FUNCTION is_super_admin_user()
 RETURNS boolean AS $$
   SELECT EXISTS (
@@ -258,33 +243,20 @@ RETURNS boolean AS $$
 $$ LANGUAGE sql SECURITY DEFINER;
 ```
 
-**Regras fixas:**
-- Paulo (`paulo.lucca@lzrtechnologies.com`) e Lucas (`lucas@lzrtechnologies.com`) são super admins em todos os projetos
-- Usuário sem empresa e sem papel super admin = bloqueado (não é bug, é segurança)
-- Nunca usar `IS NULL OR empresa_id = ...` em políticas de segurança — isso abre acesso cruzado entre empresas
+Fixed rules:
+- User without a company and without super admin role = blocked (this is security, not a bug)
+- Never use `IS NULL OR company_id = ...` in security policies — this opens cross-company access
 
 ---
 
-## Regra 7 — Zero Tolerância a Erros
+## Rule 7 — Zero Tolerance for Errors
 
-Nenhum projeto LZR vai para produção com erros ou alertas pendentes. Isso inclui:
-- Erros de tipo (TypeScript)
-- Alertas do verificador de código
-- Falhas de testes
-- Falhas de build
-- Alertas de auditoria de design
+No project ships with pending errors or warnings. This includes: TypeScript errors, linter warnings, failing tests, build failures, design audit warnings.
 
-Se aparecer um erro durante o desenvolvimento — independente de quando foi introduzido — para, corrige, confirma que tudo passa, só então continua.
+If an error appears during development — regardless of when it was introduced — stop, fix everything, confirm all checks pass, then continue.
 
-**Sequência antes de qualquer envio de código:**
-1. Verificação de tipos: zero erros
-2. Verificação de código: zero alertas
-3. Testes: todos passando
-4. Build: sem erros
-
----
-
-## Arquivos de referência
-
-- **DATA-FETCHING.md** — carregue quando precisar de exemplos detalhados de React Query
-- **BACKEND-PATTERNS.md** — carregue quando estruturando a camada de acesso a dados
+**Required before any code push:**
+1. Type check: zero errors
+2. Lint: zero warnings
+3. Tests: all passing
+4. Build: no errors
