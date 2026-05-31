@@ -89,20 +89,51 @@ npx skills add https://github.com/Lizardsstudios/lzr-skills --skill "origin-desi
 
 ---
 
-## Skills
+## What's included
+
+This repository is a complete kit: **skills** that guide your AI, and **templates** that give your project a professional physical structure from day one.
+
+### Skills
 
 | Skill | Install name | What it does |
 |---|---|---|
 | [origin-design](./skills/origin-design/) | `origin-design` | Derives visual identity from the product brief. Covers colors, typography, spacing, 8 required components, UX patterns, motion, accessibility and responsiveness. |
 | [lzr-code-standards](./skills/lzr-code-standards/) | `lzr-code-standards` | Professional coding patterns for web apps. Data fetching, layered architecture, visual tokens in code, navigation, security. |
-| [new-project](./skills/new-project/) | `new-project` | Creates a complete new project — folder structure, repository, branches, review workflow — preceded by a product brief wizard that feeds the design skill. |
+| [new-project](./skills/new-project/) | `new-project` | Creates a complete new project using the templates below — folder structure, repository, branches, review workflow — preceded by a product brief wizard that feeds the design skill. |
 
-### Which one do I need?
+### Templates
 
-- **Building a screen or component?** → `origin-design`
-- **Working on a web app codebase?** → `lzr-code-standards`
-- **Starting a brand new project?** → `new-project` (includes both above)
-- **Want everything?** → install all three
+Ready-to-use project bases. No internal references, no proprietary dependencies — works for anyone.
+
+| Template | Folder | Stack |
+|---|---|---|
+| **Web app** | [templates/web](./templates/web/) | React 19 · Next.js 15 App Router · TypeScript · Tailwind CSS · React Query · Zod · Vitest · Playwright |
+| **Backend service** | [templates/api](./templates/api/) | Node.js · Fastify · TypeScript · Zod · Pino · Vitest |
+
+Both templates include:
+- Quality hooks that run on every commit (lint, type check, tests)
+- CI/CD workflow that runs on every push
+- Commit message convention enforcement
+- CSS token system ready for the `origin-design` palette
+- Folder structure that matches the `lzr-code-standards` patterns
+
+### How skills and templates work together
+
+The templates give the project its physical structure. The skills give the AI the behavior to work correctly inside it. Neither replaces the other — they are designed to be used together.
+
+When you run `/new-project`, the `new-project` skill:
+1. Runs the product brief wizard (5 questions)
+2. Creates the project from the right template
+3. Hands the brief to `origin-design` to propose the visual identity
+
+The template starts with neutral placeholder colors. The design skill replaces them with colors derived from the product.
+
+### Which do I need?
+
+- **Starting a new project?** → `/new-project` (wizard + template + design identity)
+- **Building a screen in an existing project?** → `origin-design`
+- **Working on any web codebase?** → `lzr-code-standards`
+- **Want everything?** → install all three skills + clone the template you need
 
 ---
 
