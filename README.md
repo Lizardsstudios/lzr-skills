@@ -7,7 +7,7 @@
 <p align="center">
   <a href="https://github.com/Lizardsstudios/lzr-skills/stargazers"><img src="https://img.shields.io/github/stars/Lizardsstudios/lzr-skills?style=for-the-badge&logo=github&labelColor=1e293b&color=fbbf24" alt="GitHub stars"/></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-fbbf24?style=for-the-badge&labelColor=1e293b" alt="MIT License"/></a>
-  <a href="#installation"><img src="https://img.shields.io/badge/Works_with-Claude_·_Cursor_·_Windsurf_·_Codex-111827?style=for-the-badge&labelColor=1e293b" alt="Compatible AI tools"/></a>
+  <a href="#installation"><img src="https://img.shields.io/badge/Works_with-Claude_·_Cursor_·_Windsurf_·_Codex_·_Gemini_·_Antigravity-111827?style=for-the-badge&labelColor=1e293b" alt="Compatible AI tools"/></a>
 </p>
 
 ---
