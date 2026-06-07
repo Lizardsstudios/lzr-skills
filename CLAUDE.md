@@ -2,6 +2,16 @@
 
 Guidance for AI assistants (Claude Code and compatible tools) working in this repository.
 
+## Communication language
+
+**All conversation with the user in the thread must be in Portuguese (pt-BR).** Replies, questions,
+explanations, commit summaries reported back in chat, and any clarification — always in Portuguese.
+
+This applies to communication only. **Repository content stays in English:** skill files
+(`SKILL.md` and reference docs), template source and comments, `README.md`, commit messages, and
+this file. English is the language of the distributed product, so do not translate committed
+artifacts.
+
 ## What this repository is
 
 **lzr-skills** is a distributable kit of **AI skills** and **project templates**, published by
